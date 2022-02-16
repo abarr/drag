@@ -46,7 +46,7 @@ defmodule DragWeb do
     quote do
       use Phoenix.LiveView,
         layout: {DragWeb.LayoutView, "live.html"}
-
+      alias DragWeb.Router.Helpers, as: Routes
       unquote(view_helpers())
     end
   end
