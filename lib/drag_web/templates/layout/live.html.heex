@@ -1,0 +1,20 @@
+<main class="container">
+  <p class="alert alert-info" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+
+  <p class="alert alert-danger" role="alert"
+    phx-click="lv:clear-flash"
+    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+
+  
+
+<div class="h-full flex">
+  <!-- Off-canvas menu for mobile, show/hide based on off-canvas menu state. -->
+  <div class="fixed inset-0 flex z-40 lg:hidden" role="dialog" aria-modal="true">
+   
+  </div>
+  <%= @inner_content %>
+  
+</div>
+</main>
