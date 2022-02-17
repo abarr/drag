@@ -25,8 +25,49 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+const Hooks = {}
+
+Hooks.Draggable = {
+    mounted() {
+        this.el.addEventListener("dragstart", event => {
+            event.target.style.opacity = .7
+            const id = event.target.getAttribute("phx-value-id")
+            console.log(id)
+            event.dataTransfer.setData("text/plain", id)
+        }, false)
+
+        this.el.addEventListener("dragend", event => {
+            console.log("END")
+            event.target.style.opacity = ""
+        }, false)
+
+        this.el.addEventListener("drop", event => {
+            console.log("DROP")
+            event.preventDefault()
+        }, false)
+    }
+}
+
+Hooks.Diagram = {
+    mounted() {
+        this.el.addEventListener("dragover", event => {
+            event.preventDefault()
+        }, false)
+
+        this.el.addEventListener("drop", event => {
+            event.preventDefault()
+            const id = event.dataTransfer.getData("text/plain")
+            this.pushEvent("copy_item", { id: id })
+        }, false)
+    }
+}
+
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}})
+let liveSocket = new LiveSocket("/live", Socket, {
+    params: { _csrf_token: csrfToken },
+    hooks: Hooks
+})
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
