@@ -1,15 +1,11 @@
-defmodule DragWeb.Page do
+defmodule DragWeb.Page2 do
   use Phoenix.LiveView
-  alias DragWeb.Components.Cell
+  alias DragWeb.Components.SVG
   alias DragWeb.Router.Helpers, as: Routes
-
-  @rows 6
-  @cols 5
 
   @impl true
   def mount(_params, _session, socket) do
-    diagram = diagram(@rows, @cols, %{})
-    {:ok, assign(socket, svgs: load_svg(), diagram: diagram)}
+    {:ok, assign(socket, svgs: load_svg(), diagram: %{})}
   end
 
   @impl true
@@ -31,7 +27,6 @@ defmodule DragWeb.Page do
     diagram =
       diagram
       |> Map.update(from, nil, fn _ -> nil end)
-      |> IO.inspect(label: "34")
       |> Map.put(to, item)
 
       {:noreply, assign(socket, diagram: diagram)}

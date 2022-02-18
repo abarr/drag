@@ -24,15 +24,18 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import Svg from "./svg"
 
-const Hooks = {}
+const Hooks = {
+    Svg: Svg
+}
 
 Hooks.Draggable = {
     mounted() {
         this.el.addEventListener("dragstart", event => {
-            event.target.style.opacity = .7
             const id = event.target.getAttribute("phx-value-id")
-            event.dataTransfer.setData("text/plain", id)
+            const src = event.target.getAttribute("phx-value-src")
+            event.dataTransfer.setData("text/list", [id, src])
         }, false)
 
         this.el.addEventListener("dragend", event => {
@@ -53,8 +56,8 @@ Hooks.Diagram = {
 
         this.el.addEventListener("drop", event => {
             event.preventDefault()
-            const id = event.dataTransfer.getData("text/plain")
-            this.pushEvent("copy_item", { id: id, target: event.target.getAttribute("id")})
+            const data = event.dataTransfer.getData("text/list").split(",")
+            this.pushEvent("copy_item", { data: data, target: event.target.getAttribute("id")})
         }, false)
     }
 }

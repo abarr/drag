@@ -10,12 +10,10 @@ defmodule DragWeb.Components.Cell do
           </div>
         </div>
       <% else %>
-      <div id={"#{@row}_#{@col}"} class="h-44 w-44 mx-6 mt-6">
-
-        <div class="flex items-center h-full draggable m-3 rounded-lg hover:border p-4">
-          <img class="object-none object-center mx-auto" src={"/images/#{@cell.path}.svg"} >
+      <div id={"#{@row}_#{@col}"} class="h-44 w-44 mx-6 mt-6 ">
+        <div id={"#{@cell.path}"} phx-hook="Draggable" class="flex items-center h-full m-3 rounded-lg hover:border p-4">
+          <img phx-value-id={"#{@cell.path}"} phx-value-src={"#{@row}_#{@col}"} class="object-none object-center mx-auto" src={"/images/#{@cell.path}.svg"} >
         </div>
-
       </div>
       <% end %>
     </div>

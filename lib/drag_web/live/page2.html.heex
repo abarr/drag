@@ -16,12 +16,9 @@
     <div class="w-7xl col-span-6 min-w-full">
       <div class="" >
         <main class="focus:outline-none order-last">
-          <div id="diagram" phx-hook="Diagram" class="grid grid-cols-5 grid-rows-6 ">
-            <!-- Design canvas -->  
-              <%= for row <- 1..6, col <- 1..5  do %>
-                <.live_component module={Cell} row={row} col={col} id={{row, col}} cell={Map.fetch!(@diagram, {row, col})}/>
-              <% end %>
-          </div>
+          <svg id="diagram" phx-hook="Svg" class="h-screen w-full bg-gray-100">
+              <.live_component module={SVG} id="1"/>
+          </svg>
         </main>
       </div>
     </div>
