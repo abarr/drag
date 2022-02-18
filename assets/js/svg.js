@@ -1,7 +1,6 @@
 export default {
     selectedElement: false,
-    currentX: 0,
-    currentY: 0,
+    offset: false,
     
     mounted() {    
         this.el.addEventListener("mousedown", this.startDrag, false)
@@ -10,22 +9,31 @@ export default {
         this.el.addEventListener("mouseleave", this.endDrag, false)
     },
     startDrag(event) {
-        event.preventDefault()
-        this.selectedElement = event.target
+        if (event.target.classList.contains('draggable')) {
+            this.selectedElement = event.target
+            this.offset = getMousePosition(event);
+            this.offset.x -= parseFloat(this.selectedElement.getAttributeNS(null, "x"));
+            this.offset.y -= parseFloat(this.selectedElement.getAttributeNS(null, "y"));
+          }
     },
     drag(event) {
         if (this.selectedElement) {
             event.preventDefault()
-            var CTM = event.target.getScreenCTM();
-            var coord = {
-                x: (event.clientX - CTM.e) / CTM.a,
-                y: (event.clientY - CTM.f) / CTM.d
-              }
-            this.selectedElement.setAttributeNS(null, "x", coord.x);
-            this.selectedElement.setAttributeNS(null, "y", coord.y);
+            var coord = getMousePosition(event);
+            this.selectedElement.setAttributeNS(null, "x", coord.x - this.offset.x);
+            this.selectedElement.setAttributeNS(null, "y", coord.y - this.offset.y);
         }
     },
     endDrag(event) { 
         this.selectedElement = false
     }
+    
 }
+
+function getMousePosition(event) {
+    var CTM = event.target.getScreenCTM()
+    return {
+      x: (event.clientX - CTM.e) / CTM.a,
+      y: (event.clientY - CTM.f) / CTM.d
+    }
+  }

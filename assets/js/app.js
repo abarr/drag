@@ -32,6 +32,7 @@ const Hooks = {
 
 Hooks.Draggable = {
     mounted() {
+        
         this.el.addEventListener("dragstart", event => {
             const id = event.target.getAttribute("phx-value-id")
             const src = event.target.getAttribute("phx-value-src")
