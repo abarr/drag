@@ -32,17 +32,14 @@ Hooks.Draggable = {
         this.el.addEventListener("dragstart", event => {
             event.target.style.opacity = .7
             const id = event.target.getAttribute("phx-value-id")
-            console.log(id)
             event.dataTransfer.setData("text/plain", id)
         }, false)
 
         this.el.addEventListener("dragend", event => {
-            console.log("END")
             event.target.style.opacity = ""
         }, false)
 
         this.el.addEventListener("drop", event => {
-            console.log("DROP")
             event.preventDefault()
         }, false)
     }
@@ -57,7 +54,7 @@ Hooks.Diagram = {
         this.el.addEventListener("drop", event => {
             event.preventDefault()
             const id = event.dataTransfer.getData("text/plain")
-            this.pushEvent("copy_item", { id: id })
+            this.pushEvent("copy_item", { id: id, target: event.target.getAttribute("id")})
         }, false)
     }
 }

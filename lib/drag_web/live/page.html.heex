@@ -1,30 +1,25 @@
 <div class="grid grid-cols-8">
-  <!-- Static sidebar for desktop -->
-  
   
     <!-- Sidebar component, swap this element with another sidebar if you like -->
-    <div class="w-64 h-screen min-h-0 border-r border-gray-200 ">
+    <div class="col-span-2 min-w-full h-screen min-h-0 border-r border-gray-200 ">
       <div class=" pt-5 pb-4">
-        <div class="items-center flex-shrink-0 px-4">
-          Components
-        </div>
-        <div class="grid grid-cols-2 items-center justify-center" >
+        <div class="grid grid-cols-2" >
           <%= for svg <- @svgs do %>
-            <div phx-hook="Draggable" draggable="true" id={"#{svg.id}"} class={"draggable m-3 rounded-lg bg-white hover:border p-4 align-middle "} >
-              <img phx-value-id={"#{svg.id}"} src={Routes.static_path(@socket, svg.path)}>
+            <div phx-hook="Draggable" draggable="true" id={"#{svg.id}"} class={"flex items-center  draggable m-3 rounded-lg hover:border p-4 "} >
+              <img class="object-none object-center mx-auto" phx-value-id={"#{svg.id}"} src={Routes.static_path(@socket, svg.path)}>
             </div> 
           <% end %>
         </div>
       </div>        
     </div>
   
-    <div class="w-7xl col-span-6 ">
-      <div class="px-6 mt-4" >
+    <div class="w-7xl col-span-6 min-w-full">
+      <div class="" >
         <main class="focus:outline-none order-last">
           <div id="diagram" phx-hook="Diagram" class="grid grid-cols-5 grid-rows-6 ">
             <!-- Design canvas -->  
-              <%= for _item <- 0..29 do %>
-                <div class="flex-none h-44 w-44 bg-gray-50 mx-6 mt-6"></div> 
+              <%= for row <- 1..6, col <- 1..5  do %>
+                <.live_component module={Cell} row={row} col={col} id={{row, col}} cell={Map.fetch!(@diagram, {row, col})}/>
               <% end %>
           </div>
         </main>
