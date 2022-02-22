@@ -17,4 +17,9 @@ defmodule DragWeb.Page do
     {:noreply, push_event(socket, "load_diagram", %{items: socket.assigns.items})}
   end
 
+  @impl true
+  def handle_event("page-resize", _, socket) do
+    {:noreply, push_event(socket, "page-resize", %{})}
+  end
+
 end
