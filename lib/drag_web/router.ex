@@ -17,7 +17,7 @@ defmodule DragWeb.Router do
   scope "/", DragWeb do
     pipe_through :browser
 
-    live "/", Page2
+    live "/", Page
   end
 
   # Other scopes may use custom stacks.
