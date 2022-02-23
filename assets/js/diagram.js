@@ -2,56 +2,128 @@ import Konva from './konva.min.js';
 
 export default {
     stage: false,
-    bounds: {h: 0, w: 0},
+    bounds: { h: 0, w: 0 },
+    anchors: [],
     mounted() {
+        // Default size of each item
+        var group_width = 100; 
+        var group_height = 80;
+
+        // Create the stage and modify size based on window size
         this.stage = new Konva.Stage({ container: 'diagram' });
         var container = this.el;
         this.update_stage(container)
-        var layer = new Konva.Layer();
 
+        // Create a layer to hold all groups 
+        var layer = new Konva.Layer();
+        this.stage.add(layer)
+
+        // Listens for page resize and adjusts Konva Stage
         window.addEventListener("resize", (e) => { this.pushEvent("page-resize", {}) });
-        
         this.handleEvent("page-resize", () => {
+            console.log("RESIZING WINDOW")
             this.update_stage(document.querySelector("#diagram"))
             layer.children.forEach(item => {
-                console.log(item.x() + " - " + this.stage.width())
-                if (item.x() + item.width() > this.stage.width()) { item.x(this.stage.width() - item.width()) }
-                if (item.y() + item.height() > this.stage.height()) { item.y(this.stage.height() - item.height())}
+                if (item.x() + group_width > this.stage.width()) { item.x(this.stage.width() - group_width - 1) }
+                if (item.y() + group_height > this.stage.height()) { item.y(this.stage.height() - group_height - 1)}
             });  
         });
         
+        // On page load LV passes list of all existing items on Diagram
         this.handleEvent("load_diagram", ({ items }) => {
             for (let i = 0; i < items.length; i++) {
-                Konva.Image.fromURL('/images/' + items[i].type + '.svg', (image) => {
-                    image.x(items[i].x)
-                    image.y(items[i].y)
-                    image.draggable(true)
-                    this.bounds = { h: this.stage.height(), w: this.stage.width() }
-                    image.on('dragmove', () => {
-                        const pos = image.getAbsolutePosition()
-                        if (pos.x < 0) { image.x(0) }
-                        if (pos.y < 0) { image.y(0) }
-                        if (pos.x > this.bounds.w - image.width()) {image.x(this.bounds.w - image.width()) }
-                        if (pos.y > this.bounds.h - image.height()) { image.y(this.bounds.h - image.height()) }
-                    })
-                    layer.add(image);
+                
+                // Create a group for each item
+                let group = new Konva.Group({
+                    x: 10 + 100 * i,
+                    y: 10 + 100 * i,
+                    id: items[i].name,
+                    draggable: true
                 });
+
+                // Handle bounds of canvas
+                this.bounds = { h: this.stage.height(), w: this.stage.width() }
+                group.on('dragmove', () => {
+                    if (group.x() < 0) { group.x(1) }
+                    if (group.y() < 0) { group.y(1) }
+                    if (group.x() > this.bounds.w - 100) {group.x(this.bounds.w - group_width - 1) }
+                    if (group.y() > this.bounds.h - 80) { group.y(this.bounds.h - group_height - 1) }
+
+                    layer.children.forEach(function (item) {
+                        if (group === item) { return; }
+                        let r1 = item.getClientRect()
+                        let r2 = group.getClientRect()
+  
+                        if (haveIntersection(r1, r2)) {
+                            if (!(r2.x > r1.x + r1.width) && r2.x > r1.x) {
+                                group.x(r1.x + r1.width)
+                            } else if ((r2.x + r2.width > r1.x) && r2.x < r1.x) {
+                                group.x(r1.x - r2.width)
+                            } else if (!(r2.y + r2.height < r1.y) && r2.y < r1.y) {
+                                group.y(r1.y - r2.height)
+                            }else if (!(r2.y + r2.height < r1.y) && r2.y > r1.y) {
+                                group.y(r1.y + r1.height)
+                            }
+                        }
+                    });
+                })
+
+                // Add a rectangle as background
+                let rect = new Konva.Rect({
+                    width: group_width,
+                    height: group_height,
+                    fill: 'white',
+                    shadowBlur: 2,
+                    cornerRadius: 10,
+                });
+
+                // Draw item
+                let path = new Konva.Path({
+                    data: items[i].path,
+                    fill: items[i].fill,
+                    stroke: items[i].stroke,
+                    width: items[i].width,
+                    height: items[i].height,
+                    scale: {
+                      x: 1,
+                      y: 1,
+                    },
+                });
+                
+                // Centre item on rectangle
+                path.x((rect.x() + (rect.width() - path.width()) / 2))
+                path.y((rect.y() + (rect.height() - path.height())/2))
+
+                // Add rect and path to group
+                group.add(rect);
+                group.add(path);
+
+                // Add to layer
+                layer.add(group)
             }
         })
-        
-        this.stage.add(layer);
-        layer.draw();
     },
-    update_stage(element) {
+    update_stage(element) { // Handles page resize
         var containerWidth = element.clientWidth;
-        console.log(containerWidth)
         var containerHeight = element.clientHeight;
+
         var scale = containerWidth / containerWidth;
+        
         this.stage.width(containerWidth * scale);
         this.stage.height(containerHeight * scale);
         this.stage.scale({ x: scale, y: scale });
+        
         this.bounds.h = this.stage.height()
         this.bounds.w = this.stage.width()
     }
 }
 
+
+function haveIntersection(r1, r2) {
+    return !(
+      r2.x > r1.x + r1.width ||
+      r2.x + r2.width < r1.x ||
+      r2.y > r1.y + r1.height ||
+      r2.y + r2.height < r1.y
+    );
+}
