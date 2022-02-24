@@ -51,18 +51,18 @@ export default {
 
                     layer.children.forEach(function (item) {
                         if (group === item) { return; }
-                        let r1 = item.getClientRect()
-                        let r2 = group.getClientRect()
+                        let test = item.getClientRect()
+                        let dragged = group.getClientRect()
   
-                        if (haveIntersection(r1, r2)) {
-                            if (!(r2.x > r1.x + r1.width) && r2.x > r1.x) {
-                                group.x(r1.x + r1.width)
-                            } else if ((r2.x + r2.width > r1.x) && r2.x < r1.x) {
-                                group.x(r1.x - r2.width)
-                            } else if (!(r2.y + r2.height < r1.y) && r2.y < r1.y) {
-                                group.y(r1.y - r2.height)
-                            }else if (!(r2.y + r2.height < r1.y) && r2.y > r1.y) {
-                                group.y(r1.y + r1.height)
+                        if (haveIntersection(test, dragged)) {
+                            if ((dragged.x < test.x + test.width) && dragged.x > test.x) {
+                                group.x(test.x + test.width)
+                            } else if ((dragged.x + dragged.width > test.x) && dragged.x < test.x) {
+                                group.x(test.x - dragged.width)
+                            } else if ((dragged.y + dragged.height > test.y) && dragged.y < test.y) {
+                                group.y(test.y - dragged.height)
+                            }else if ((dragged.y < test.y + test.height) && dragged.y > test.y) {
+                                group.y(test.y + test.height)
                             }
                         }
                     });
@@ -119,11 +119,11 @@ export default {
 }
 
 
-function haveIntersection(r1, r2) {
+function haveIntersection(test, dragged) {
     return !(
-      r2.x > r1.x + r1.width ||
-      r2.x + r2.width < r1.x ||
-      r2.y > r1.y + r1.height ||
-      r2.y + r2.height < r1.y
+      dragged.x > test.x + test.width ||
+      dragged.x + dragged.width < test.x ||
+      dragged.y > test.y + test.height ||
+      dragged.y + dragged.height < test.y
     );
 }
