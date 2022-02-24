@@ -1,7 +1,21 @@
 import Konva from './konva.min.js';
 
+function haveIntersection(test, dragged) {
+    return !(
+      dragged.x > test.x + test.width ||
+      dragged.x + dragged.width < test.x ||
+      dragged.y > test.y + test.height ||
+      dragged.y + dragged.height < test.y
+    );
+}
+
+function from_right(test, dragged) {
+    dragged.x < test.x + test.width && dragged.x > test.x
+}
+
 export default {
     stage: false,
+    selected: false,
     bounds: { h: 0, w: 0 },
     anchors: [],
     mounted() {
@@ -68,6 +82,11 @@ export default {
                     });
                 })
 
+                group.on('click', (e) => { 
+                    this.selected = group
+                    console.log(this.selected)
+                })
+
                 // Add a rectangle as background
                 let rect = new Konva.Rect({
                     width: group_width,
@@ -103,6 +122,9 @@ export default {
             }
         })
     },
+    load_existing_items() {
+
+    },
     update_stage(element) { // Handles page resize
         var containerWidth = element.clientWidth;
         var containerHeight = element.clientHeight;
@@ -119,11 +141,4 @@ export default {
 }
 
 
-function haveIntersection(test, dragged) {
-    return !(
-      dragged.x > test.x + test.width ||
-      dragged.x + dragged.width < test.x ||
-      dragged.y > test.y + test.height ||
-      dragged.y + dragged.height < test.y
-    );
-}
+
