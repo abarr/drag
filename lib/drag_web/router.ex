@@ -20,6 +20,7 @@ defmodule DragWeb.Router do
     live "/", Page
     live "/bounded", Page
     live "/select", Page2
+    live "/line", Page3
   end
 
   # Other scopes may use custom stacks.

@@ -26,10 +26,12 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import Diagram from "./diagram"
 import Diagram2 from "./diagram2"
+import Diagram3 from "./diagram3"
 
 const Hooks = {
     Diagram: Diagram,
-    Diagram2: Diagram2
+    Diagram2: Diagram2,
+    Diagram3: Diagram3,
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
