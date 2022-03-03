@@ -1,5 +1,14 @@
 import Stage from './stage.js';
 
+function haveIntersection(target, drag_point) {
+    var result = (
+      drag_point.x < target.x + target.width && drag_point.y < target.y + target.height
+      && drag_point.x + drag_point.width > target.x && drag_point.y + drag_point.height < target.y
+    )
+    console.log(result)
+    return result;
+}
+
 export default {
     stage: {},
     bounds: {},
@@ -68,14 +77,6 @@ export default {
             radius: this.connector.from_drag_point.radius,
             draggable: true
         });
-        from_dp.on('dragmove', () => {
-            // mutate the state
-            this.connector.from_drag_point.x = from_dp.x();
-            this.connector.from_drag_point.y = from_dp.y();
-  
-            // update nodes from the new state
-            this.updateObjects();
-          });
 
         this.layer.add(from_dp);
         
@@ -107,6 +108,21 @@ export default {
             tension: 0
         });
         this.layer.add(line);
+
+        from_dp.on('dragmove', () => {
+            // mutate the state
+            this.connector.from_drag_point.x = from_dp.x();
+            this.connector.from_drag_point.y = from_dp.y();
+            // update nodes from the new state
+            this.updateObjects();
+
+            this.layer.children.forEach(function (child) {
+                var target = child.getClientRect()
+                if (haveIntersection(target, this.connector.from_drag_point)) {
+                    console.log("HIT")
+                }
+            });
+          });
     },
     getConnectorPoints(from, to) {
         return [
@@ -165,5 +181,6 @@ export default {
         
         this.bounds.h = this.stage.height()
         this.bounds.w = this.stage.width()
-    }
+    },
+    
 }
