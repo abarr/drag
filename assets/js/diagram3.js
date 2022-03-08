@@ -10,11 +10,12 @@ function haveIntersection(r1, r2) {
 }
 
 export default {
+    isPaint: false,
     stage: {},
     bounds: {},
     layer: {},
     targets: [],
-    connections: [],
+    anchors: [],
     connector: {
         id: "tool",
         from_drag_point: {
@@ -36,67 +37,57 @@ export default {
     },
     mounted() {
         this.setup_stage('diagram2', this.el)
-
-        window.addEventListener("resize", (e) => { this.pushEvent("page-resize", {}) });
-
-        this.handleEvent("page-resize", () => {
-            this.update_stage(document.querySelector("#diagram3"))
-            layer.children.forEach(item => {
-                if (item.x() + group_width > this.stage.width()) { item.x(this.stage.width() - group_width - 1) }
-                if (item.y() + group_height > this.stage.height()) { item.y(this.stage.height() - group_height - 1)}
-            });  
-        });
-
+        
         this.handleEvent("load_diagram3", ({ items }) => {
             this.targets = items
             this.render_targets()
         });
 
-        this.render_connector()
-        this.add_drag_event_to_layer()
+        // this.render_connector()
+        // this.add_drag_event_to_layer()
     },
-    add_drag_event_to_layer() {
-        layer = this.layer
-        connector = this.connector
+    
+    // add_drag_event_to_layer() {
+    //     layer = this.layer
+    //     connector = this.connector
         
-        this.layer.on('dragmove', function (e) {
-            var target = e.target;
-            var targetRect = e.target.getClientRect();
-            layer.children.forEach(function (child) {
-                if (child === target) { return; }
-                if (child.id() === 'dp_from') { return; }
-                if (child.id() === 'dp_to') { return; }
+    //     this.layer.on('dragmove', function (e) {
+    //         var target = e.target;
+    //         var targetRect = e.target.getClientRect();
+    //         layer.children.forEach(function (child) {
+    //             if (child === target) { return; }
+    //             if (child.id() === 'dp_from') { return; }
+    //             if (child.id() === 'dp_to') { return; }
                 
-                if (haveIntersection(child.getClientRect(), targetRect)) {
-                    switch (target.id()) {
-                        case 'dp_from':
-                            child.fill('red')
-                            connector.from_drag_point.target = child
-                            break;
-                        case 'dp_to':
-                            child.fill('red')
-                            connector.to_drag_point.target = child
-                            break;
-                        default:
-                          // code block
-                      }
-                } else {
-                    switch (target.id()) {
-                        case 'dp_from':
-                            connector.from_drag_point.target = null
-                            break;
-                        case 'dp_to':
-                            connector.to_drag_point.target.fill('black')
-                            connector.to_drag_point.target = null
-                            break;
-                        default:
-                          // code block
-                      }
-                }
-            });
-            console.log(connector.from_drag_point.target)
-        });
-    },
+    //             if (haveIntersection(child.getClientRect(), targetRect)) {
+    //                 switch (target.id()) {
+    //                     case 'dp_from':
+    //                         child.fill('red')
+    //                         connector.from_drag_point.target = child
+    //                         break;
+    //                     case 'dp_to':
+    //                         child.fill('red')
+    //                         connector.to_drag_point.target = child
+    //                         break;
+    //                     default:
+    //                       // code block
+    //                   }
+    //             } else {
+    //                 switch (target.id()) {
+    //                     case 'dp_from':
+    //                         connector.from_drag_point.target = null
+    //                         break;
+    //                     case 'dp_to':
+    //                         connector.to_drag_point.target.fill('black')
+    //                         connector.to_drag_point.target = null
+    //                         break;
+    //                     default:
+    //                       // code block
+    //                   }
+    //             }
+    //         });
+    //     });
+    // },
     updateObjects() {
         var from_drag_point = this.layer.findOne('#' + this.connector.from_drag_point.id);    
         from_drag_point.x(this.connector.from_drag_point.x);
@@ -187,18 +178,71 @@ export default {
                 cornerRadius: 10,
                 draggable: true
             })
+   
+            this.layer.add(node)
+    
+            var anchors = this.getAnchorPoints(
+                node.x(),
+                node.y()
+            )
+    
+            anchors.map((anchor, index) => {
+                var anchor_point = new Konva.Circle({
+                    id: target.id + "_" + index,
+                    fill: 'black',
+                    radius: 5,
+                    x: anchor.x,
+                    y: anchor.y
+                })
+                
+                anchor_point.on('mousedown', () => {
+                    var line = new Konva.Line({
+                        stroke: '#df4b26',
+                        strokeWidth: 5
+                    })
+                })
+                this.layer.add(anchor_point)
+            })
+            
+            node.on('dragmove', () =>  {
+                var anchor_ids = [
+                    node.id() + "_" + 0,
+                    node.id() + "_" + 1,
+                    node.id() + "_" + 2,
+                    node.id() + "_" + 3
+                ]
 
-            this.layer.add(node);
-    
-            node.on('dragmove', () => {
-              // mutate the state
-              target.x = node.x();
-              target.y = node.y();
-    
-              // update nodes from the new state
-              this.updateObjects();
-            });
-          });
+                var anchor_points = this.getAnchorPoints(node.x(), node.y()) 
+                anchor_ids.forEach((id, index) => {
+                    var anchor = this.layer.findOne('#' + id)
+                    var position = anchor_points.at(index)
+                    anchor.x(position.x)
+                    anchor.y(position.y)
+                })
+            })
+
+        })
+    },
+    getAnchorPoints(x, y) {
+        const halfSize = 50 / 2;
+        return [
+        {
+            x: x - 10,
+            y: y + halfSize
+        },
+        {
+            x: x + halfSize,
+            y: y - 10
+        },
+        {
+            x: x + 50 + 10,
+            y: y + halfSize
+        },
+        {
+            x: x + halfSize,
+            y: y + 50 + 10
+        }
+        ];
     },
     setup_stage(container, el) {
         this.stage = new Konva.Stage({ container: container });
