@@ -1,12 +1,12 @@
 import Stage from './stage.js';
 
-function haveIntersection(target, drag_point) {
-    var result = (
-      drag_point.x < target.x + target.width && drag_point.y < target.y + target.height
-      && drag_point.x + drag_point.width > target.x && drag_point.y + drag_point.height < target.y
-    )
-    console.log(result)
-    return result;
+function haveIntersection(r1, r2) {
+    return !(
+        r2.x > r1.x + r1.width ||
+        r2.x + r2.width < r1.x ||
+        r2.y > r1.y + r1.height ||
+        r2.y + r2.height < r1.y
+    );
 }
 
 export default {
@@ -22,14 +22,16 @@ export default {
             x: 100,
             y: 300,
             radius: 10,
-            fill: "red"
+            fill: "red",
+            target: null
         },
         to_drag_point: {
             id: "dp_to",
             x: 400,
             y: 400,
             radius: 10,
-            fill: "red"
+            fill: "red",
+            target: null
         }
     },
     mounted() {
@@ -51,6 +53,49 @@ export default {
         });
 
         this.render_connector()
+        this.add_drag_event_to_layer()
+    },
+    add_drag_event_to_layer() {
+        layer = this.layer
+        connector = this.connector
+        
+        this.layer.on('dragmove', function (e) {
+            var target = e.target;
+            var targetRect = e.target.getClientRect();
+            layer.children.forEach(function (child) {
+                if (child === target) { return; }
+                if (child.id() === 'dp_from') { return; }
+                if (child.id() === 'dp_to') { return; }
+                
+                if (haveIntersection(child.getClientRect(), targetRect)) {
+                    switch (target.id()) {
+                        case 'dp_from':
+                            child.fill('red')
+                            connector.from_drag_point.target = child
+                            break;
+                        case 'dp_to':
+                            child.fill('red')
+                            connector.to_drag_point.target = child
+                            break;
+                        default:
+                          // code block
+                      }
+                } else {
+                    switch (target.id()) {
+                        case 'dp_from':
+                            connector.from_drag_point.target = null
+                            break;
+                        case 'dp_to':
+                            connector.to_drag_point.target.fill('black')
+                            connector.to_drag_point.target = null
+                            break;
+                        default:
+                          // code block
+                      }
+                }
+            });
+            console.log(connector.from_drag_point.target)
+        });
     },
     updateObjects() {
         var from_drag_point = this.layer.findOne('#' + this.connector.from_drag_point.id);    
@@ -115,13 +160,6 @@ export default {
             this.connector.from_drag_point.y = from_dp.y();
             // update nodes from the new state
             this.updateObjects();
-
-            this.layer.children.forEach(function (child) {
-                var target = child.getClientRect()
-                if (haveIntersection(target, this.connector.from_drag_point)) {
-                    console.log("HIT")
-                }
-            });
           });
     },
     getConnectorPoints(from, to) {
