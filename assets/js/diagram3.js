@@ -10,7 +10,7 @@ function haveIntersection(r1, r2) {
 }
 
 export default {
-    isPaint: false,
+    line: false,
     stage: {},
     bounds: {},
     layer: {},
@@ -43,6 +43,33 @@ export default {
             this.render_targets()
         });
 
+        this.stage.on('mousemove', (e) => {
+            console.log(!this.line)
+            if (!this.line) {
+              return;
+            }
+            const pos = this.stage.getPointerPosition();
+            const points = this.line.points().slice();
+            var new_points = this.getConnectorPoints({x: points[0], y: points[1]}, {x: pos.x, y: pos.y})
+            this.line.points(new_points);
+            this.layer.batchDraw();
+        });
+
+        this.stage.on('mouseup', (e) => {
+            if (!this.line) {
+              return;
+            }
+            if (!e.target.hasName("anchor")) {
+                this.line.destroy();
+                this.layer.draw();
+                this.line = false;
+            } else {
+                this.line = false;
+            }
+            
+          });
+        
+        console.log
         // this.render_connector()
         // this.add_drag_event_to_layer()
     },
@@ -166,6 +193,7 @@ export default {
         ];
     },
     render_targets() {
+        console.log(this.targets)
         this.targets.forEach((target) => {
             var node = new Konva.Rect({
                 id: target.id,
@@ -192,15 +220,22 @@ export default {
                     fill: 'black',
                     radius: 5,
                     x: anchor.x,
-                    y: anchor.y
+                    y: anchor.y,
+                    name: "anchor"
                 })
                 
                 anchor_point.on('mousedown', () => {
+                    const pos = this.stage.getPointerPosition();
                     var line = new Konva.Line({
-                        stroke: '#df4b26',
-                        strokeWidth: 5
-                    })
-                })
+                        stroke: 'black',
+                        // remove line from hit graph, so we can check intersections
+                        listening: false,
+                        points: [anchor_point.x(), anchor_point.y(), pos.x, pos.y]
+                    });
+                    this.line = line;
+                    this.layer.add(line);
+                });
+                
                 this.layer.add(anchor_point)
             })
             
