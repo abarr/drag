@@ -11,6 +11,9 @@ function haveIntersection(r1, r2) {
 
 export default {
     line: false,
+    from_id: null,
+    from_anchor_id: null,
+    connectors: [],
     stage: {},
     bounds: {},
     layer: {},
@@ -44,7 +47,6 @@ export default {
         });
 
         this.stage.on('mousemove', (e) => {
-            console.log(!this.line)
             if (!this.line) {
               return;
             }
@@ -55,25 +57,52 @@ export default {
             this.layer.batchDraw();
         });
 
+        this.stage.on('dragmove', (e) => {
+            this.connectors.forEach((connector) => {
+                if (connector.from_id == e.target.id() || connector.to_id == e.target.id()) {
+                    var from = this.layer.findOne("#" + connector.from_anchor);  
+                    var to = this.layer.findOne("#" + connector.to_anchor);   
+                    const points = this.getConnectorPoints(
+                        from.position(),
+                        to.position()
+                    )
+                    var connector = this.layer.findOne("#" + connector.line.id())
+                    console.log("HERE")
+                    console.log(connector)
+                    connector.points(points)
+                }
+            })
+        })
+
         this.stage.on('mouseup', (e) => {
             if (!this.line) {
               return;
             }
-            if (!e.target.hasName("anchor")) {
-                this.line.destroy();
-                this.layer.draw();
-                this.line = false;
-            } else {
-                this.line = false;
-            }
             
+            if (e.target.hasName("anchor")) {
+                var parent = e.target.id().split("_")[0]
+                var line = this.layer.findOne("#" + this.from_id + "_" + this.from_anchor_id); 
+                var connector = {
+                    line: line,
+                    from_id: this.from_id,
+                    to_id: parent,
+                    from_anchor: this.from_anchor_id,
+                    to_anchor: e.target.id()
+                }
+                this.connectors.push(connector);
+               
+                this.line = false;
+                this.layer.add(line)
+
+            } else {
+                this.line.destroy()
+                this.line = false;
+            }    
           });
         
-        console.log
         // this.render_connector()
         // this.add_drag_event_to_layer()
     },
-    
     // add_drag_event_to_layer() {
     //     layer = this.layer
     //     connector = this.connector
@@ -115,7 +144,7 @@ export default {
     //         });
     //     });
     // },
-    updateObjects() {
+    updateConnectors() {
         var from_drag_point = this.layer.findOne('#' + this.connector.from_drag_point.id);    
         from_drag_point.x(this.connector.from_drag_point.x);
         from_drag_point.y(this.connector.from_drag_point.y);
@@ -131,55 +160,55 @@ export default {
         );
         line.points(points);
     },
-    render_connector() {
-        var from_dp = new Konva.Circle({
-            id: this.connector.from_drag_point.id,
-            fill: this.connector.from_drag_point.fill,
-            x: this.connector.from_drag_point.x,
-            y: this.connector.from_drag_point.y,
-            radius: this.connector.from_drag_point.radius,
-            draggable: true
-        });
+    // render_connector() {
+    //     var from_dp = new Konva.Circle({
+    //         id: this.connector.from_drag_point.id,
+    //         fill: this.connector.from_drag_point.fill,
+    //         x: this.connector.from_drag_point.x,
+    //         y: this.connector.from_drag_point.y,
+    //         radius: this.connector.from_drag_point.radius,
+    //         draggable: true
+    //     });
 
-        this.layer.add(from_dp);
+    //     this.layer.add(from_dp);
         
-        var to_dp = new Konva.Circle({
-            id: this.connector.to_drag_point.id,
-            fill: this.connector.to_drag_point.fill,
-            x: this.connector.to_drag_point.x,
-            y: this.connector.to_drag_point.y,
-            radius: this.connector.to_drag_point.radius,
-            draggable: true
-        });
-        to_dp.on('dragmove', () => {
-            // mutate the state
-            this.connector.to_drag_point.x = to_dp.x();
-            this.connector.to_drag_point.y = to_dp.y();
+    //     var to_dp = new Konva.Circle({
+    //         id: this.connector.to_drag_point.id,
+    //         fill: this.connector.to_drag_point.fill,
+    //         x: this.connector.to_drag_point.x,
+    //         y: this.connector.to_drag_point.y,
+    //         radius: this.connector.to_drag_point.radius,
+    //         draggable: true
+    //     });
+    //     to_dp.on('dragmove', () => {
+    //         // mutate the state
+    //         this.connector.to_drag_point.x = to_dp.x();
+    //         this.connector.to_drag_point.y = to_dp.y();
   
-            // update nodes from the new state
-            this.updateObjects();
-          });
+    //         // update nodes from the new state
+    //         this.updateObjects();
+    //       });
 
-        this.layer.add(to_dp);
+    //     this.layer.add(to_dp);
         
-        var line = new Konva.Line({
-            id: "drag_points_connector",
-            points: this.getConnectorPoints(
-                this.connector.from_drag_point,
-                this.connector.to_drag_point),
-            stroke: 'red',
-            tension: 0
-        });
-        this.layer.add(line);
+    //     var line = new Konva.Line({
+    //         id: "drag_points_connector",
+    //         points: this.getConnectorPoints(
+    //             this.connector.from_drag_point,
+    //             this.connector.to_drag_point),
+    //         stroke: 'red',
+    //         tension: 0
+    //     });
+    //     this.layer.add(line);
 
-        from_dp.on('dragmove', () => {
-            // mutate the state
-            this.connector.from_drag_point.x = from_dp.x();
-            this.connector.from_drag_point.y = from_dp.y();
-            // update nodes from the new state
-            this.updateObjects();
-          });
-    },
+    //     from_dp.on('dragmove', () => {
+    //         // mutate the state
+    //         this.connector.from_drag_point.x = from_dp.x();
+    //         this.connector.from_drag_point.y = from_dp.y();
+    //         // update nodes from the new state
+    //         this.updateObjects();
+    //       });
+    // },
     getConnectorPoints(from, to) {
         return [
             from.x,
@@ -193,7 +222,6 @@ export default {
         ];
     },
     render_targets() {
-        console.log(this.targets)
         this.targets.forEach((target) => {
             var node = new Konva.Rect({
                 id: target.id,
@@ -227,15 +255,18 @@ export default {
                 anchor_point.on('mousedown', () => {
                     const pos = this.stage.getPointerPosition();
                     var line = new Konva.Line({
+                        id: target.id + "_" + anchor_point.id(),
                         stroke: 'black',
                         // remove line from hit graph, so we can check intersections
                         listening: false,
                         points: [anchor_point.x(), anchor_point.y(), pos.x, pos.y]
                     });
+                    this.from_id = target.id + "";
+                    this.from_anchor_id = anchor_point.id();
                     this.line = line;
                     this.layer.add(line);
                 });
-                
+
                 this.layer.add(anchor_point)
             })
             
@@ -254,6 +285,8 @@ export default {
                     anchor.x(position.x)
                     anchor.y(position.y)
                 })
+
+                
             })
 
         })
